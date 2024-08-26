@@ -4,117 +4,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TOEFL Prep - Reading Section</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f4f4;
-            margin: 0;
-            padding: 0;
-        }
-
-        header {
-            background-color: #4caf50;
-            color: white;
-            text-align: center;
-            padding: 15px 0;
-        }
-
-        .container {
-            max-width: 800px;
-            margin: 20px auto;
-            padding: 20px;
-            background-color: white;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-        }
-
-        .instructions {
-            font-size: 18px;
-            margin-bottom: 20px;
-        }
-
-        #timer {
-            font-size: 24px;
-            margin-bottom: 20px;
-            text-align: center;
-        }
-
-        #progress-bar {
-            width: 100%;
-            background-color: #ccc;
-            margin-bottom: 20px;
-        }
-
-        #progress-bar-fill {
-            width: 0;
-            height: 10px;
-            background-color: #4caf50;
-        }
-
-        #content-section {
-            display: none;
-        }
-
-        .passage-content {
-            margin-bottom: 20px;
-            font-size: 16px;
-            line-height: 1.5;
-        }
-
-        .question {
-            margin-bottom: 20px;
-        }
-
-        #navigation-buttons {
-            text-align: center;
-            margin-top: 20px;
-        }
-
-        #submit-section {
-            text-align: center;
-            margin-top: 20px;
-        }
-
-        button {
-            padding: 10px 20px;
-            font-size: 16px;
-            color: white;
-            background-color: #4caf50;
-            border: none;
-            cursor: pointer;
-            margin: 5px;
-            border-radius: 5px;
-        }
-
-        button:hover {
-            background-color: #45a049;
-        }
-
-        button:disabled {
-            background-color: #ccc;
-            cursor: not-allowed;
-        }
-
-        #loading-indicator {
-            display: none;
-            text-align: center;
-            margin-bottom: 20px;
-        }
-
-        footer {
-            text-align: center;
-            padding: 15px 0;
-            background-color: #f4f4f4;
-            margin-top: 20px;
-            color: #777;
-        }
+        /* Your existing inline CSS here */
     </style>
 </head>
 <body>
-
     <header>
-        <h1>TOEFL Preparation - Reading Section</h1>
+        <h1>TOEFL Prep - Reading Section</h1>
     </header>
-
     <div class="container">
         <div class="instructions" id="instructions">
             <p>Welcome to the TOEFL Reading Section practice test. Click the "Start" button to begin the test. You will have 35 minutes to complete the section. After you complete the questions, click "Submit" to save your results.</p>
@@ -133,7 +31,7 @@
         </div>
 
         <div id="content-section">
-            <div class="passage-content">Passage content will load here.</div>
+            <div class="passage-content" id="passage-content">Passage content will load here.</div>
             <div id="questions-container">Questions will load here.</div>
             <div id="navigation-buttons">
                 <button id="back-button">Back</button>
@@ -151,49 +49,43 @@
         <p>Good luck with your preparation!</p>
     </footer>
 
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
     <script>
         document.addEventListener("DOMContentLoaded", async function() {
             const startButton = document.getElementById('start-button');
             const contentSection = document.getElementById('content-section');
-            const passageContent = document.querySelector('.passage-content');
+            const passageContent = document.getElementById('passage-content');
             const questionsContainer = document.getElementById('questions-container');
             const timerElement = document.getElementById('timer');
-            const progressBarFill = document.querySelectorAll('#progress-bar-fill')[1]; // Second progress bar fill
+            const progressBarFill = document.querySelectorAll('#progress-bar-fill')[1];
             const backButton = document.getElementById('back-button');
             const nextButton = document.getElementById('next-button');
             const submitButton = document.getElementById('submit-button');
-            const navigationButtons = document.getElementById('navigation-buttons');
             const instructions = document.getElementById('instructions');
             const loadingIndicator = document.getElementById('loading-indicator');
-            const loadingProgressBar = document.querySelectorAll('#progress-bar-fill')[0]; // First progress bar fill
+            const loadingProgressBar = document.querySelectorAll('#progress-bar-fill')[0];
 
-            let timeLeft = 35 * 60; // 35 minutes in seconds
+            let timeLeft = 35 * 60;
             let currentQuestionIndex = 0;
             let currentPassageIndex = 0;
             let questions = [];
             let passages = [];
             let userAnswers = [];
-            let correctAnswers = []; // To store the correct answers
+            let correctAnswers = [];
 
-            // Preload passages and questions before user clicks Start
             async function preloadPassagesAndQuestions() {
                 try {
-                    // Show loading indicator
                     loadingIndicator.style.display = 'block';
-
-                    // Simulate loading time with a progress bar fill
                     let progress = 0;
                     const loadingInterval = setInterval(() => {
                         progress += 10;
                         loadingProgressBar.style.width = `${progress}%`;
-
                         if (progress >= 100) {
                             clearInterval(loadingInterval);
-                            loadingIndicator.style.display = 'none'; // Hide loading indicator
+                            loadingIndicator.style.display = 'none';
                         }
                     }, 100);
 
-                    // Fetch the passages and questions from the server
                     const response1 = await fetch('/get_passage');
                     const passageData1 = await response1.json();
                     passages.push(passageData1.passage);
@@ -222,25 +114,17 @@
                     const questionsData2 = await questionsResponse2.json();
                     questions.push(questionsData2.questions);
 
-                    // Debugging: Log the structure of questions array
-                    console.log("Passages Loaded:", passages);
-                    console.log("Questions Loaded:", questions);
-
                 } catch (error) {
                     console.error('Error preloading passage or questions:', error);
                 }
             }
 
-            // Call the function to preload the passages and questions
             await preloadPassagesAndQuestions();
 
-            // Function to update the timer every second
             function updateTimer() {
                 const minutes = Math.floor(timeLeft / 60);
                 const seconds = timeLeft % 60;
                 timerElement.textContent = `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
-                
-                // Update the progress bar
                 const progressPercentage = 100 - (timeLeft / (35 * 60)) * 100;
                 progressBarFill.style.width = `${progressPercentage}%`;
 
@@ -253,16 +137,12 @@
                 }
             }
 
-            // Function to load the next question
             function loadQuestion() {
-                // Check if questions array is defined and has expected structure
                 if (questions[currentPassageIndex] && questions[currentPassageIndex][currentQuestionIndex]) {
                     const questionData = questions[currentPassageIndex][currentQuestionIndex];
                     const questionParts = questionData.split('\n');
-                    const questionText = questionParts[0].replace('Q:', ''); // Remove extra "Q:"
+                    const questionText = questionParts[0].replace('Q:', '');
                     const options = questionParts.slice(1);
-
-                    console.log("Loading question:", questionText);  // Debugging line
 
                     questionsContainer.innerHTML = `
                         <div class="question">
@@ -281,8 +161,8 @@
                     currentQuestionIndex++;
 
                     if (currentPassageIndex === 1 && currentQuestionIndex === 10) {
-                        nextButton.disabled = true; // Disable the Next button at the last question
-                        submitButton.disabled = false; // Enable the Submit button
+                        nextButton.disabled = true;
+                        submitButton.disabled = false;
                     }
                 } else {
                     console.error("Questions array is not structured as expected", questions);
@@ -305,7 +185,6 @@
                     }
                 });
 
-                // Save the result via POST request
                 fetch('/save_result', {
                     method: 'POST',
                     headers: {
@@ -325,18 +204,13 @@
 
             startButton.addEventListener('click', () => {
                 startButton.style.display = 'none';
-                instructions.style.display = 'none'; // Hide the instructions when the test starts
+                instructions.style.display = 'none';
                 contentSection.style.display = 'block';
                 navigationButtons.style.display = 'block';
-                submitButton.disabled = true; // Keep Submit button disabled initially
+                submitButton.disabled = true;
 
-                // Display the first passage immediately
                 passageContent.textContent = passages[currentPassageIndex];
-                
-                // Start the timer
                 updateTimer();
-
-                // Load the first question
                 loadQuestion();
             });
 

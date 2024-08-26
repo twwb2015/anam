@@ -19,8 +19,8 @@ def chat_gpt(prompt):
     )
     return response.choices[0].message.content.strip()
 
-# Path to the Passages folder
-PASSAGES_FOLDER = '/Users/arvindprabhakaran/Documents/Passages'  # Update this path as needed
+# Path to the Passages folder (relative path based on your project structure)
+PASSAGES_FOLDER = os.path.join(os.path.dirname(__file__), 'Passages')
 
 @app.route('/')
 def index():

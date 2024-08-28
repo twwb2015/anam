@@ -1,7 +1,0 @@
-runtime: python310  # Specifies the Python runtime environment
-
-entrypoint: gunicorn -b :$PORT reading_app:app
-
-handlers:
-- url: /.*
-  script: auto
